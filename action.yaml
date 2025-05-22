@@ -38,11 +38,13 @@ runs:
 
     - name: Show TFLint version
       run: tflint --version
+      shell: bash
 
     - name: Init TFLint
       run: tflint --init
       env:
         GITHUB_TOKEN: ${{ github.token }}
+      shell: bash
 
     - name: Run TFLint and save output
       id: tflint
@@ -53,3 +55,4 @@ runs:
         cat tflint.out >> "$GITHUB_STEP_SUMMARY"
         echo '```' >> "$GITHUB_STEP_SUMMARY"
         test ! -s tflint.out
+      shell: bash
