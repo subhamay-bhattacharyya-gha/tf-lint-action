@@ -50,6 +50,9 @@ runs:
       id: tflint
       run: |
         tflint -f ${{ inputs.tflint-format }} > tflint.out || true
+        echo "################# tflint.out ###################"
+        cat tflint.out
+        echo "################################################"
         echo '### TFLint Results (`${{ inputs.tflint-format }}` format)' >> "$GITHUB_STEP_SUMMARY"
         echo '```' >> "$GITHUB_STEP_SUMMARY"
         cat tflint.out >> "$GITHUB_STEP_SUMMARY"
