@@ -1,0 +1,54 @@
+# .github/workflows/test-tflint.yml
+name: Test TFLint Action
+
+on:
+  push:
+    paths:
+      - '.github/actions/tflint/**'
+      - '.github/workflows/test-tflint.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["v0.50.0", "v0.52.0"]
+        fail: [false, true]
+    name: TFLint ${{ matrix.version }} fail=${{ matrix.fail }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform files
+        run: |
+          mkdir test-tf
+          cd test-tf
+
+          # good config
+          echo '
+          terraform {
+            required_providers {
+              null = {
+                source = "hashicorp/null"
+                version = "~> 3.0"
+              }
+            }
+          }
+
+          resource "null_resource" "ok" {}
+          ' > main.tf
+
+          # bad config
+          if [[ "${{ matrix.fail }}" == "true" ]]; then
+            echo 'resource "aws_instance" "bad" { ami = "" }' >> main.tf
+          fi
+
+          # simple tflint config
+          echo 'plugin "aws" { enabled = true }' > .tflint.hcl
+
+      - name: Run TFLint Composite Action
+        uses: ./.github/actions/tflint
+        with:
+          tflint-ver: ${{ matrix.version }}
+          use-cache: 'false'
+          tflint-format: compact
