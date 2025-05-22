@@ -1,44 +1,55 @@
-name: 'Action Name'
-description: 'Action Description'
+# .github/actions/tflint/action.yaml
+name: 'Terraform Linter'
+description: 'Run TFLint on Terraform code'
 
 inputs:
-  input-1:
-    description: Input description.
+  tflint-ver:
+    description: 'TFLint version to use'
     required: false
-    default: default-value
-  input-2:
-    description: Input description.
+    default: "v0.52.0"
+
+  use-cache:
+    description: 'Enable TFLint plugin caching (true|false)'
     required: false
-    default: default-value
-  input-3:
-    description: Input description.
+    default: "true"
+
+  tflint-format:
+    description: 'TFLint output format (default, json, compact, checkstyle)'
     required: false
-    default: default-value
-  github-token:
-    description: 'GitHub token'
-    required: true
+    default: "compact"
 
 runs:
   using: 'composite'
   steps:
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Cache TFLint plugins
+      if: ${{ inputs.use-cache == 'true' }}
+      uses: actions/cache@v3
       with:
-        python-version: 3.x
+        path: ~/.tflint.d/plugins
+        key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
 
-    - name: Sample step to call GitHub API
-      shell: bash
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4
+      with:
+        tflint_version: ${{ inputs.tflint-ver }}
+
+    - name: Show TFLint version
+      run: tflint --version
+
+    - name: Init TFLint
+      run: tflint --init
       env:
-        GITHUB_TOKEN: ${{ inputs.github-token }}
-      run: |
-        ISSUE_NUMBER="${{ github.event.issue.number }}"
-        REPO="${{ github.repository }}"
-        OWNER=$(echo $REPO | cut -d'/' -f1)
-        BRANCH_NAME="${{ steps.create-branch.outputs.branch-name }}"
-        COMMENT_BODY="Branch [$BRANCH_NAME](https://github.com/$OWNER/$REPO/tree/$BRANCH_NAME) created 🚀"
+        GITHUB_TOKEN: ${{ github.token }}
 
-        curl -s -X POST \
-          -H "Authorization: token $GITHUB_TOKEN" \
-          -H "Content-Type: application/json" \
-          -d "{\"body\": \"$COMMENT_BODY\"}" \
-          https://api.github.com/repos/$REPO/issues/$ISSUE_NUMBER/comments
+    - name: Run TFLint and save output
+      id: tflint
+      run: |
+        tflint -f ${{ inputs.tflint-format }} > tflint.out || true
+        echo '### TFLint Results (`${{ inputs.tflint-format }}` format)' >> "$GITHUB_STEP_SUMMARY"
+        echo '```' >> "$GITHUB_STEP_SUMMARY"
+        cat tflint.out >> "$GITHUB_STEP_SUMMARY"
+        echo '```' >> "$GITHUB_STEP_SUMMARY"
+        test ! -s tflint.out
