@@ -47,7 +47,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run TFLint
-        uses: subhamay-bhattacharyya-gha/tf-lint-action@v1
+        uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
           tflint-ver: v0.52.0
           use-cache: 'true'
