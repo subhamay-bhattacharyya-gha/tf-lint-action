@@ -50,12 +50,21 @@ runs:
       id: tflint
       run: |
         tflint -f ${{ inputs.tflint-format }} > tflint.out || true
+
         echo "################# tflint.out ###################"
         cat tflint.out
         echo "################################################"
+
         echo '### TFLint Results (`${{ inputs.tflint-format }}` format)' >> "$GITHUB_STEP_SUMMARY"
         echo '```' >> "$GITHUB_STEP_SUMMARY"
         cat tflint.out >> "$GITHUB_STEP_SUMMARY"
         echo '```' >> "$GITHUB_STEP_SUMMARY"
-        test ! -s tflint.out
+
+        if [ -s tflint.out ]; then
+          echo "❌ Issues detected by TFLint"
+          exit 1
+        else
+          echo "✅ No issues found by TFLint"
+        fi
       shell: bash
+
