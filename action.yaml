@@ -1,59 +1,90 @@
-# .github/actions/tflint/action.yaml
-name: 'Terraform Linter'
-description: 'Run TFLint on Terraform code'
+name: "Terraform Lint with TFLint"
+description: "A composite GitHub Action that installs and runs TFLint to detect issues in Terraform code."
 
 inputs:
-  tflint-ver:
-    description: 'TFLint version to use'
+  terraform-dir:
+    description: "Relative path to the directory containing Terraform configuration files (e.g., 'tf', 'infrastructure')."
     required: false
+    type: string
+    default: "tf"
+
+  release-tag:
+    description: "Git release tag to check out. If omitted, the current branch or tag will be used."
+    required: false
+    type: string
+    default: ""
+
+  tflint-ver:
+    description: "TFLint version to install (e.g., v0.52.0)."
+    required: false
+    type: string
     default: "v0.52.0"
 
   use-cache:
-    description: 'Enable TFLint plugin caching (true|false)'
+    description: "Enable caching for TFLint plugins ('true' or 'false')."
     required: false
+    type: string
     default: "true"
 
   tflint-format:
-    description: 'TFLint output format (default, json, compact, checkstyle)'
+    description: "Output format for TFLint results (default, json, compact, checkstyle)."
     required: false
+    type: string
     default: "compact"
 
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+    - name: Set Git Ref for Checkout
+      id: set-checkout-ref
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.release-tag }}" ]]; then
+          echo "ref=${{ inputs.release-tag }}" >> $GITHUB_OUTPUT
+        else
+          echo "ref=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+        fi
 
-    - name: Cache TFLint plugins
+    - name: Checkout Repository
+      id: checkout-repo
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ steps.set-checkout-ref.outputs.ref }}
+
+    - name: Cache TFLint Plugins
       if: ${{ inputs.use-cache == 'true' }}
+      id: cache-tflint
       uses: actions/cache@v4
       with:
         path: ~/.tflint.d/plugins
         key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
 
-    - name: Setup TFLint
+    - name: Install TFLint
+      id: install-tflint
       uses: terraform-linters/setup-tflint@v4
       with:
         tflint_version: ${{ inputs.tflint-ver }}
 
-    - name: Show TFLint version
+    - name: Show Installed TFLint Version
       run: tflint --version
       shell: bash
 
-    - name: Init TFLint
+    - name: Initialize TFLint Plugins
+      id: init-tflint
       run: tflint --init
       env:
         GITHUB_TOKEN: ${{ github.token }}
       shell: bash
 
-    - name: Run TFLint and save output
-      id: tflint
+    - name: Run TFLint and Report Results
+      id: run-tflint
+      working-directory: ${{ github.workspace }}/${{ inputs.terraform-dir }}
       run: |
         tflint -f ${{ inputs.tflint-format }} > tflint.out || true
 
         if [ -s tflint.out ]; then
-          echo "❌ Issues detected by TFLint"  >> "$GITHUB_STEP_SUMMARY"
-          echo '### TFLint Results (`${{ inputs.tflint-format }}` format)'
+          echo "❌ Issues detected by TFLint" >> "$GITHUB_STEP_SUMMARY"
+          echo '### TFLint Results (`${{ inputs.tflint-format }}` format)' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           cat tflint.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -62,4 +93,3 @@ runs:
           echo "✅ No issues found by TFLint" >> "$GITHUB_STEP_SUMMARY"
         fi
       shell: bash
-
