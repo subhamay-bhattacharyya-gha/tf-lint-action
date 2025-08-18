@@ -47,7 +47,7 @@ runs:
 
     - name: Checkout Repository
       id: checkout-repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         ref: ${{ steps.set-checkout-ref.outputs.ref }}
 
