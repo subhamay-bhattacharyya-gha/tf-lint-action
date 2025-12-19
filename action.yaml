@@ -54,7 +54,7 @@ runs:
     - name: Cache TFLint Plugins
       if: ${{ inputs.use-cache == 'true' }}
       id: cache-tflint
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.tflint.d/plugins
         key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
