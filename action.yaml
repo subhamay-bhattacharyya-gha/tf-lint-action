@@ -47,21 +47,21 @@ runs:
 
     - name: Checkout Repository
       id: checkout-repo
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         ref: ${{ steps.set-checkout-ref.outputs.ref }}
 
     - name: Cache TFLint Plugins
       if: ${{ inputs.use-cache == 'true' }}
       id: cache-tflint
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.tflint.d/plugins
         key: ubuntu-latest-tflint-${{ hashFiles('.tflint.hcl') }}
 
     - name: Install TFLint
       id: install-tflint
-      uses: terraform-linters/setup-tflint@v4
+      uses: terraform-linters/setup-tflint@v6
       with:
         tflint_version: ${{ inputs.tflint-ver }}
 
