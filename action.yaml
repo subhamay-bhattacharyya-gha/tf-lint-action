@@ -15,10 +15,10 @@ inputs:
     default: ""
 
   tflint-ver:
-    description: "TFLint version to install (e.g., v0.52.0)."
+    description: "TFLint version to install (e.g., v0.52.0). If not provided, uses repository variable TFLINT_VER or falls back to v0.52.0."
     required: false
     type: string
-    default: "v0.52.0"
+    default: ""
 
   use-cache:
     description: "Enable caching for TFLint plugins ('true' or 'false')."
@@ -35,6 +35,32 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Print GitHub Action Inputs
+      shell: bash
+      run: |
+        echo "=== GitHub Action Inputs ==="
+        echo "terraform-dir: ${{ inputs.terraform-dir }}"
+        echo "release-tag: ${{ inputs.release-tag }}"
+        echo "tflint-ver: ${{ inputs.tflint-ver }}"
+        echo "use-cache: ${{ inputs.use-cache }}"
+        echo "tflint-format: ${{ inputs.tflint-format }}"
+        echo "============================"
+
+    - name: Set TFLint Version
+      id: set-tflint-version
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.tflint-ver }}" ]]; then
+          echo "version=${{ inputs.tflint-ver }}" >> $GITHUB_OUTPUT
+          echo "Using explicitly provided TFLint version: ${{ inputs.tflint-ver }}"
+        elif [[ -n "${{ vars.TFLINT_VER }}" ]]; then
+          echo "version=${{ vars.TFLINT_VER }}" >> $GITHUB_OUTPUT
+          echo "Using repository variable TFLINT_VER: ${{ vars.TFLINT_VER }}"
+        else
+          echo "version=v0.52.0" >> $GITHUB_OUTPUT
+          echo "Using fallback TFLint version: v0.52.0"
+        fi
+
     - name: Set Git Ref for Checkout
       id: set-checkout-ref
       shell: bash
@@ -63,7 +89,7 @@ runs:
       id: install-tflint
       uses: terraform-linters/setup-tflint@v6
       with:
-        tflint_version: ${{ inputs.tflint-ver }}
+        tflint_version: ${{ steps.set-tflint-version.outputs.version }}
 
     - name: Show Installed TFLint Version
       run: tflint --version
@@ -80,6 +106,12 @@ runs:
       id: run-tflint
       working-directory: ${{ github.workspace }}/${{ inputs.terraform-dir }}
       run: |
+        echo "=== Directory Information ==="
+        echo "Current directory: $(pwd)"
+        echo "Available files (recursive):"
+        find . -type f | sort
+        echo "============================"
+        
         tflint -f ${{ inputs.tflint-format }} > tflint.out || true
 
         if [ -s tflint.out ]; then

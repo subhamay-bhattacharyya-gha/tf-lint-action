@@ -17,7 +17,9 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 ## 🚀 Features
 
 - Installs and configures TFLint
-- Supports custom TFLint versions
+- Supports custom TFLint versions with repository variable fallback
+- Prints action inputs for debugging visibility
+- Shows current directory and file listing for troubleshooting
 - Optionally caches plugin directory
 - Supports multiple output formats (`default`, `compact`, `json`, `checkstyle`)
 - Logs results in the GitHub Actions Summary
@@ -32,7 +34,7 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 |-------------------|-----------------------------------------------------------------------------|----------|-------------|
 | `terraform-dir`   | Relative path to the directory containing Terraform configuration files     | No       | `tf`        |
 | `release-tag`     | Git release tag to check out. If omitted, the current branch or tag is used | No       | `""`        |
-| `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`)                                 | No       | `v0.52.0`   |
+| `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Uses repository variable `TFLINT_VER` if not provided, falls back to `v0.52.0` | No       | `""` (uses `TFLINT_VER` variable or `v0.52.0`) |
 | `use-cache`       | Enable plugin caching (`true` or `false`)                                   | No       | `true`      |
 | `tflint-format`   | TFLint output format (`default`, `json`, `compact`, `checkstyle`)           | No       | `compact`   |
 
@@ -40,9 +42,12 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 
 ## 📤 Behavior
 
+- Prints all input parameters for debugging visibility
+- Determines TFLint version using priority: explicit input → repository variable `TFLINT_VER` → fallback to `v0.52.0`
 - Checks out the repo at the specified release tag or fallback to `github.ref_name`
 - Caches `.tflint.d/plugins` if enabled
 - Initializes TFLint and installs plugins
+- Shows current working directory and available files for troubleshooting
 - Runs TFLint in the specified format
 - Displays issues in the GitHub Actions Summary
 - Fails the step if lint issues are found
@@ -50,6 +55,8 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 ---
 
 ## 📦 Example Usage
+
+### Basic Usage
 
 ```yaml
 name: Terraform Lint
@@ -73,8 +80,37 @@ jobs:
           tflint-ver: "v0.52.0"
           use-cache: "true"
           tflint-format: "compact"
-
 ```
+
+### Using Repository Variable for TFLint Version
+
+To use a repository variable for the default TFLint version:
+
+1. Go to your repository Settings → Secrets and variables → Actions → Variables tab
+2. Add a variable named `TFLINT_VER` with your desired version (e.g., `v0.53.0`)
+3. Use the action without specifying `tflint-ver`:
+
+```yaml
+      - name: Run TFLint with Repository Variable
+        uses: subhamay-bhattacharyya-gha/tf-lint-action@main
+        with:
+          terraform-dir: "infrastructure"
+          use-cache: "true"
+          tflint-format: "json"
+          # tflint-ver will use the TFLINT_VER repository variable
+```
+
+---
+
+## 📝 Note on TFLINT_VER Repository Variable
+
+The action supports using a repository variable `TFLINT_VER` to set a default TFLint version across your organization or repository. This provides flexibility in version management:
+
+- **Priority Order**: Explicit `tflint-ver` input → `TFLINT_VER` repository variable → `v0.52.0` fallback
+- **Setup**: Repository Settings → Secrets and variables → Actions → Variables tab → Add `TFLINT_VER`
+- **Benefits**: Centralized version management, easy updates across multiple workflows, consistent tooling versions
+
+When the repository variable is set, all workflows using this action will automatically use that version unless explicitly overridden with the `tflint-ver` input.
 
 ## License
 
