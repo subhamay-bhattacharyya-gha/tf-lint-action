@@ -3,10 +3,16 @@ description: "A composite GitHub Action that installs and runs TFLint to detect 
 
 inputs:
   terraform-dir:
-    description: "Relative path to the directory containing Terraform configuration files (e.g., 'tf', 'infrastructure')."
+    description: "Relative path to the directory containing Terraform configuration files (e.g., 'tf', 'infrastructure'). Can be combined with cloud-provider for multi-cloud setups."
     required: false
     type: string
     default: "tf"
+
+  cloud-provider:
+    description: "Cloud provider for multi-cloud setups (aws, gcp, azure). When specified, modifies terraform-dir to 'infra/<cloud-provider>/tf'."
+    required: false
+    type: string
+    default: ""
 
   release-tag:
     description: "Git release tag to check out. If omitted, the current branch or tag will be used."
@@ -40,11 +46,32 @@ runs:
       run: |
         echo "=== GitHub Action Inputs ==="
         echo "terraform-dir: ${{ inputs.terraform-dir }}"
+        echo "cloud-provider: ${{ inputs.cloud-provider }}"
         echo "release-tag: ${{ inputs.release-tag }}"
         echo "tflint-ver: ${{ inputs.tflint-ver }}"
         echo "use-cache: ${{ inputs.use-cache }}"
         echo "tflint-format: ${{ inputs.tflint-format }}"
         echo "============================"
+
+    - name: Set Terraform Directory
+      id: set-terraform-dir
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.cloud-provider }}" ]]; then
+          case "${{ inputs.cloud-provider }}" in
+            aws|gcp|azure)
+              echo "dir=infra/${{ inputs.cloud-provider }}/tf" >> $GITHUB_OUTPUT
+              echo "Using multi-cloud directory: infra/${{ inputs.cloud-provider }}/tf"
+              ;;
+            *)
+              echo "❌ Invalid cloud provider: ${{ inputs.cloud-provider }}. Supported values: aws, gcp, azure"
+              exit 1
+              ;;
+          esac
+        else
+          echo "dir=${{ inputs.terraform-dir }}" >> $GITHUB_OUTPUT
+          echo "Using specified terraform-dir: ${{ inputs.terraform-dir }}"
+        fi
 
     - name: Set TFLint Version
       id: set-tflint-version
@@ -104,7 +131,7 @@ runs:
 
     - name: Run TFLint and Report Results
       id: run-tflint
-      working-directory: ${{ github.workspace }}/${{ inputs.terraform-dir }}
+      working-directory: ${{ github.workspace }}/${{ steps.set-terraform-dir.outputs.dir }}
       run: |
         echo "=== Directory Information ==="
         echo "Current directory: $(pwd)"

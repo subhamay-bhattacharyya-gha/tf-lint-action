@@ -32,7 +32,8 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 
 | Name              | Description                                                                 | Required | Default     |
 |-------------------|-----------------------------------------------------------------------------|----------|-------------|
-| `terraform-dir`   | Relative path to the directory containing Terraform configuration files     | No       | `tf`        |
+| `terraform-dir`   | Relative path to the directory containing Terraform configuration files. Can be combined with cloud-provider for multi-cloud setups | No       | `tf`        |
+| `cloud-provider`  | Cloud provider for multi-cloud setups (`aws`, `gcp`, `azure`). When specified, modifies terraform-dir to `infra/<cloud-provider>/tf` | No       | `""` (disabled) |
 | `release-tag`     | Git release tag to check out. If omitted, the current branch or tag is used | No       | `""`        |
 | `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Uses repository variable `TFLINT_VER` if not provided, falls back to `v0.52.0` | No       | `""` (uses `TFLINT_VER` variable or `v0.52.0`) |
 | `use-cache`       | Enable plugin caching (`true` or `false`)                                   | No       | `true`      |
@@ -98,6 +99,67 @@ To use a repository variable for the default TFLint version:
           use-cache: "true"
           tflint-format: "json"
           # tflint-ver will use the TFLINT_VER repository variable
+```
+
+### Multi-Cloud Implementation
+
+For multi-cloud infrastructure setups, use the `cloud-provider` input to automatically target the correct directory structure:
+
+```yaml
+name: Multi-Cloud Terraform Lint
+
+on:
+  push:
+    paths:
+      - "infra/**/*.tf"
+      - ".tflint.hcl"
+
+jobs:
+  lint-aws:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint AWS Infrastructure
+        uses: subhamay-bhattacharyya-gha/tf-lint-action@main
+        with:
+          cloud-provider: "aws"
+          # This will automatically use: infra/aws/tf
+
+  lint-gcp:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint GCP Infrastructure
+        uses: subhamay-bhattacharyya-gha/tf-lint-action@main
+        with:
+          cloud-provider: "gcp"
+          # This will automatically use: infra/gcp/tf
+
+  lint-azure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Lint Azure Infrastructure
+        uses: subhamay-bhattacharyya-gha/tf-lint-action@main
+        with:
+          cloud-provider: "azure"
+          # This will automatically use: infra/azure/tf
+```
+
+**Expected Directory Structure for Multi-Cloud:**
+```
+repository/
+├── infra/
+│   ├── aws/
+│   │   └── tf/
+│   │       ├── main.tf
+│   │       └── variables.tf
+│   ├── gcp/
+│   │   └── tf/
+│   │       ├── main.tf
+│   │       └── variables.tf
+│   └── azure/
+│       └── tf/
+│           ├── main.tf
+│           └── variables.tf
+└── .tflint.hcl
 ```
 
 ---
