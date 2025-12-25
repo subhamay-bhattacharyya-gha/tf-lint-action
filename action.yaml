@@ -21,7 +21,7 @@ inputs:
     default: ""
 
   tflint-ver:
-    description: "TFLint version to install (e.g., v0.52.0). If not provided, uses repository variable TFLINT_VER or falls back to v0.52.0."
+    description: "TFLint version to install (e.g., v0.52.0). If not provided, uses organization variable TF_LINT_VER or falls back to v0.52.0."
     required: false
     type: string
     default: ""
@@ -76,13 +76,15 @@ runs:
     - name: Set TFLint Version
       id: set-tflint-version
       shell: bash
+      env:
+        TF_LINT_VER: ${{ vars.TF_LINT_VER }}
       run: |
         if [[ -n "${{ inputs.tflint-ver }}" ]]; then
           echo "version=${{ inputs.tflint-ver }}" >> $GITHUB_OUTPUT
           echo "Using explicitly provided TFLint version: ${{ inputs.tflint-ver }}"
-        elif [[ -n "${{ vars.TF_LINT_VER }}" ]]; then
-          echo "version=${{ vars.TF_LINT_VER }}" >> $GITHUB_OUTPUT
-          echo "Using repository variable TFLINT_VER: ${{ vars.TF_LINT_VER }}"
+        elif [[ -n "${TF_LINT_VER}" ]]; then
+          echo "version=${TF_LINT_VER}" >> $GITHUB_OUTPUT
+          echo "Using organization variable TF_LINT_VER: ${TF_LINT_VER}"
         else
           echo "version=v0.52.0" >> $GITHUB_OUTPUT
           echo "Using fallback TFLint version: v0.52.0"

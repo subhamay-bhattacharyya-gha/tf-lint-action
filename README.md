@@ -35,7 +35,7 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 | `terraform-dir`   | Relative path to the directory containing Terraform configuration files. Can be combined with cloud-provider for multi-cloud setups | No       | `tf`        |
 | `cloud-provider`  | Cloud provider for multi-cloud setups (`aws`, `gcp`, `azure`). When specified, modifies terraform-dir to `infra/<cloud-provider>/tf` | No       | `""` (disabled) |
 | `release-tag`     | Git release tag to check out. If omitted, the current branch or tag is used | No       | `""`        |
-| `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Uses repository variable `TFLINT_VER` if not provided, falls back to `v0.52.0` | No       | `""` (uses `TFLINT_VER` variable or `v0.52.0`) |
+| `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Uses organization variable `TF_LINT_VER` if not provided, falls back to `v0.52.0` | No       | `""` (uses `TF_LINT_VER` variable or `v0.52.0`) |
 | `use-cache`       | Enable plugin caching (`true` or `false`)                                   | No       | `true`      |
 | `tflint-format`   | TFLint output format (`default`, `json`, `compact`, `checkstyle`)           | No       | `compact`   |
 
@@ -44,7 +44,7 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 ## 📤 Behavior
 
 - Prints all input parameters for debugging visibility
-- Determines TFLint version using priority: explicit input → repository variable `TFLINT_VER` → fallback to `v0.52.0`
+- Determines TFLint version using priority: explicit input → organization variable `TF_LINT_VER` → fallback to `v0.52.0`
 - Checks out the repo at the specified release tag or fallback to `github.ref_name`
 - Caches `.tflint.d/plugins` if enabled
 - Initializes TFLint and installs plugins
