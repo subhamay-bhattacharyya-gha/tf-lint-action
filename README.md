@@ -169,6 +169,24 @@ repository/
 
 ---
 
+## 📝 TFLint Version Management Best Practices
+
+**Recommended Approach**: Use the organization variable `TF_LINT_VER` to maintain consistent TFLint versions across all repositories in your organization. This should be your default approach:
+
+```yaml
+tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}
+```
+
+**Override When Necessary**: In cases where you need to use a specific TFLint version that differs from the organization standard (e.g., testing a new version, compatibility requirements), hardcode the version:
+
+```yaml
+tflint-ver: "v0.53.0"  # Override organization variable for specific needs
+```
+
+This approach ensures organization-wide consistency while allowing flexibility for special cases.
+
+---
+
 ## 📝 Note on TF_LINT_VER Organization Variable
 
 The action supports using an organization variable `TF_LINT_VER` for centralized version management across your organization. Since composite actions cannot directly access `vars` context, you need to pass the organization variable from your calling workflow:
