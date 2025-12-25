@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/subhamay-bhattacharyya-gha/tf-lint-action/compare/v1.0.0...v1.1.0) (2025-12-25)
+
+
+### Bug Fixes
+
+* **action:** correct TFLint repository variable naming ([e23d7f9](https://github.com/subhamay-bhattacharyya-gha/tf-lint-action/commit/e23d7f98bf84b43779b7c1756bedd4c3615a9d8b))
+* **action:** correct TFLint version variable naming ([b1511a4](https://github.com/subhamay-bhattacharyya-gha/tf-lint-action/commit/b1511a465a53a799cb2c4630412e21ea33e103c5))
+
+
+### Features
+
+* **action:** add multi-cloud support with cloud-provider input ([c1c561d](https://github.com/subhamay-bhattacharyya-gha/tf-lint-action/commit/c1c561d66d7a307ebf6c8bbb2455bf5ebbbebb85))
+
 # 1.0.0 (2025-05-22)
 
 
