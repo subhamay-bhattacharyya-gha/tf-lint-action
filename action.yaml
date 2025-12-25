@@ -80,7 +80,7 @@ runs:
         if [[ -n "${{ inputs.tflint-ver }}" ]]; then
           echo "version=${{ inputs.tflint-ver }}" >> $GITHUB_OUTPUT
           echo "Using explicitly provided TFLint version: ${{ inputs.tflint-ver }}"
-        elif [[ -n "${{ vars.TFL_INT_VER }}" ]]; then
+        elif [[ -n "${{ vars.TF_LINT_VER }}" ]]; then
           echo "version=${{ vars.TF_LINT_VER }}" >> $GITHUB_OUTPUT
           echo "Using repository variable TFLINT_VER: ${{ vars.TF_LINT_VER }}"
         else
