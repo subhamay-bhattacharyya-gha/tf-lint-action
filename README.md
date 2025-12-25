@@ -83,22 +83,22 @@ jobs:
           tflint-format: "compact"
 ```
 
-### Using Repository Variable for TFLint Version
+### Using Organization Variable for TFLint Version
 
-To use a repository variable for the default TFLint version:
+To use an organization variable for the default TFLint version:
 
-1. Go to your repository Settings → Secrets and variables → Actions → Variables tab
-2. Add a variable named `TFLINT_VER` with your desired version (e.g., `v0.53.0`)
+1. Go to your organization Settings → Secrets and variables → Actions → Variables tab
+2. Add a variable named `TF_LINT_VER` with your desired version (e.g., `v0.53.0`)
 3. Use the action without specifying `tflint-ver`:
 
 ```yaml
-      - name: Run TFLint with Repository Variable
+      - name: Run TFLint with Organization Variable
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
           terraform-dir: "infrastructure"
           use-cache: "true"
           tflint-format: "json"
-          # tflint-ver will use the TFLINT_VER repository variable
+          # tflint-ver will use the TF_LINT_VER organization variable
 ```
 
 ### Multi-Cloud Implementation
@@ -164,15 +164,15 @@ repository/
 
 ---
 
-## 📝 Note on TFLINT_VER Repository Variable
+## 📝 Note on TF_LINT_VER Organization Variable
 
-The action supports using a repository variable `TFLINT_VER` to set a default TFLint version across your organization or repository. This provides flexibility in version management:
+The action supports using an organization variable `TF_LINT_VER` to set a default TFLint version across your entire organization. This provides centralized version management:
 
-- **Priority Order**: Explicit `tflint-ver` input → `TFLINT_VER` repository variable → `v0.52.0` fallback
-- **Setup**: Repository Settings → Secrets and variables → Actions → Variables tab → Add `TFLINT_VER`
-- **Benefits**: Centralized version management, easy updates across multiple workflows, consistent tooling versions
+- **Priority Order**: Explicit `tflint-ver` input → `TF_LINT_VER` organization variable → `v0.52.0` fallback
+- **Setup**: Organization Settings → Secrets and variables → Actions → Variables tab → Add `TF_LINT_VER`
+- **Benefits**: Organization-wide version management, easy updates across all repositories, consistent tooling versions
 
-When the repository variable is set, all workflows using this action will automatically use that version unless explicitly overridden with the `tflint-ver` input.
+When the organization variable is set, all workflows using this action across your organization will automatically use that version unless explicitly overridden with the `tflint-ver` input.
 
 ## License
 
