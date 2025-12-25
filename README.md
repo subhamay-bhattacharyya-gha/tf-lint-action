@@ -35,7 +35,7 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 | `terraform-dir`   | Relative path to the directory containing Terraform configuration files. Can be combined with cloud-provider for multi-cloud setups | No       | `tf`        |
 | `cloud-provider`  | Cloud provider for multi-cloud setups (`aws`, `gcp`, `azure`). When specified, modifies terraform-dir to `infra/<cloud-provider>/tf` | No       | `""` (disabled) |
 | `release-tag`     | Git release tag to check out. If omitted, the current branch or tag is used | No       | `""`        |
-| `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Uses organization variable `TF_LINT_VER` if not provided, falls back to `v0.52.0` | No       | `""` (uses `TF_LINT_VER` variable or `v0.52.0`) |
+| `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Pass organization variable `TF_LINT_VER` from calling workflow | No       | `v0.52.0` |
 | `use-cache`       | Enable plugin caching (`true` or `false`)                                   | No       | `true`      |
 | `tflint-format`   | TFLint output format (`default`, `json`, `compact`, `checkstyle`)           | No       | `compact`   |
 
@@ -44,7 +44,7 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 ## 📤 Behavior
 
 - Prints all input parameters for debugging visibility
-- Determines TFLint version using priority: explicit input → organization variable `TF_LINT_VER` → fallback to `v0.52.0`
+- Uses the provided TFLint version (defaults to `v0.52.0` if not specified)
 - Checks out the repo at the specified release tag or fallback to `github.ref_name`
 - Caches `.tflint.d/plugins` if enabled
 - Initializes TFLint and installs plugins
@@ -85,20 +85,22 @@ jobs:
 
 ### Using Organization Variable for TFLint Version
 
-To use an organization variable for the default TFLint version:
+To use an organization variable for the default TFLint version, pass it from your workflow:
 
-1. Go to your organization Settings → Secrets and variables → Actions → Variables tab
-2. Add a variable named `TF_LINT_VER` with your desired version (e.g., `v0.53.0`)
-3. Use the action without specifying `tflint-ver`:
+1. Set up the organization variable:
+   - Go to your organization Settings → Secrets and variables → Actions → Variables tab
+   - Add a variable named `TF_LINT_VER` with your desired version (e.g., `v0.53.0`)
+
+2. Pass the organization variable to the action in your workflow:
 
 ```yaml
       - name: Run TFLint with Organization Variable
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
           terraform-dir: "infrastructure"
+          tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}
           use-cache: "true"
           tflint-format: "json"
-          # tflint-ver will use the TF_LINT_VER organization variable
 ```
 
 ### Multi-Cloud Implementation
@@ -122,6 +124,7 @@ jobs:
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
           cloud-provider: "aws"
+          tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}
           # This will automatically use: infra/aws/tf
 
   lint-gcp:
@@ -131,6 +134,7 @@ jobs:
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
           cloud-provider: "gcp"
+          tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}
           # This will automatically use: infra/gcp/tf
 
   lint-azure:
@@ -140,6 +144,7 @@ jobs:
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
           cloud-provider: "azure"
+          tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}
           # This will automatically use: infra/azure/tf
 ```
 
@@ -166,13 +171,14 @@ repository/
 
 ## 📝 Note on TF_LINT_VER Organization Variable
 
-The action supports using an organization variable `TF_LINT_VER` to set a default TFLint version across your entire organization. This provides centralized version management:
+The action supports using an organization variable `TF_LINT_VER` for centralized version management across your organization. Since composite actions cannot directly access `vars` context, you need to pass the organization variable from your calling workflow:
 
-- **Priority Order**: Explicit `tflint-ver` input → `TF_LINT_VER` organization variable → `v0.52.0` fallback
 - **Setup**: Organization Settings → Secrets and variables → Actions → Variables tab → Add `TF_LINT_VER`
+- **Usage**: Pass the variable using `tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}` in your workflow
 - **Benefits**: Organization-wide version management, easy updates across all repositories, consistent tooling versions
+- **Fallback**: Use `|| 'v0.52.0'` to provide a fallback version if the organization variable is not set
 
-When the organization variable is set, all workflows using this action across your organization will automatically use that version unless explicitly overridden with the `tflint-ver` input.
+This approach ensures all workflows across your organization use the same TFLint version while maintaining flexibility for individual overrides.
 
 ## License
 
