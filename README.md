@@ -32,8 +32,8 @@ A GitHub Composite Action to lint Terraform code using [TFLint](https://github.c
 
 | Name              | Description                                                                 | Required | Default     |
 |-------------------|-----------------------------------------------------------------------------|----------|-------------|
-| `terraform-dir`   | Relative path to the directory containing Terraform configuration files. Can be combined with cloud-provider for multi-cloud setups | No       | `tf`        |
-| `cloud-provider`  | Cloud provider for multi-cloud setups (`aws`, `gcp`, `azure`). When specified, modifies terraform-dir to `infra/<cloud-provider>/tf` | No       | `""` (disabled) |
+| `tf-config-path`  | Relative path to the directory containing Terraform configuration files. Can be combined with cloud-provider for multi-cloud setups | No       | `tf`        |
+| `cloud-provider`  | Cloud provider for multi-cloud setups (`aws`, `gcp`, `azure`). When specified, modifies tf-config-path to `infra/<cloud-provider>/tf` | No       | `""` (disabled) |
 | `release-tag`     | Git release tag to check out. If omitted, the current branch or tag is used | No       | `""`        |
 | `tflint-ver`      | TFLint version to install (e.g., `v0.52.0`). Pass organization variable `TF_LINT_VER` from calling workflow | No       | `v0.52.0` |
 | `use-cache`       | Enable plugin caching (`true` or `false`)                                   | No       | `true`      |
@@ -76,7 +76,7 @@ jobs:
       - name: Run TFLint
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
-          terraform-dir: "tf"
+          tf-config-path: "tf"
           release-tag: ""
           tflint-ver: "v0.52.0"
           use-cache: "true"
@@ -97,7 +97,7 @@ To use an organization variable for the default TFLint version, pass it from you
       - name: Run TFLint with Organization Variable
         uses: subhamay-bhattacharyya-gha/tf-lint-action@main
         with:
-          terraform-dir: "infrastructure"
+          tf-config-path: "infrastructure"
           tflint-ver: ${{ vars.TF_LINT_VER || 'v0.52.0' }}
           use-cache: "true"
           tflint-format: "json"
