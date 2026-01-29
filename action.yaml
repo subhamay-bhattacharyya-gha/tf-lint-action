@@ -2,7 +2,7 @@ name: "Terraform Lint with TFLint"
 description: "A composite GitHub Action that installs and runs TFLint to detect issues in Terraform code."
 
 inputs:
-  terraform-dir:
+  tf-config-path:
     description: "Relative path to the directory containing Terraform configuration files (e.g., 'tf', 'infrastructure'). Can be combined with cloud-provider for multi-cloud setups."
     required: false
     type: string
@@ -45,7 +45,7 @@ runs:
       shell: bash
       run: |
         echo "=== GitHub Action Inputs ==="
-        echo "terraform-dir: ${{ inputs.terraform-dir }}"
+        echo "tf-config-path: ${{ inputs.tf-config-path }}"
         echo "cloud-provider: ${{ inputs.cloud-provider }}"
         echo "release-tag: ${{ inputs.release-tag }}"
         echo "tflint-ver: ${{ inputs.tflint-ver }}"
@@ -69,8 +69,8 @@ runs:
               ;;
           esac
         else
-          echo "dir=${{ inputs.terraform-dir }}" >> $GITHUB_OUTPUT
-          echo "Using specified terraform-dir: ${{ inputs.terraform-dir }}"
+          echo "dir=${{ inputs.tf-config-path }}" >> $GITHUB_OUTPUT
+          echo "Using specified tf-config-path: ${{ inputs.tf-config-path }}"
         fi
 
     - name: Set TFLint Version
